@@ -52,7 +52,7 @@ class solver_at_resolution:
 
     def initial_run_of_model(self):
         start = datetime.now()
-        self.result = self.PM.match(self.step, abc_from_transform(self.initial_vals), self.blur_extra)
+        self.result = self.PM.match(self.step, abc_from_transform(self.initial_vals, self.blur_extra))
         print('Initial run to find phase image took: ' + str(datetime.now() - start))
 
     def cost_for_blur_new(self, v1, v2, v3, mode, pix_y, pix_x):
