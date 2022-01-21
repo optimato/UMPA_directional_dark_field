@@ -1,42 +1,23 @@
 import numpy as np
 
 
-def abc_from_transform_old(v):
-    if np.asarray(v).ndim == 3:
-        sx = v[:,:,0]
-        sy = v[:,:,1]
-        sig = v[:,:,2]
-        out = np.zeros_like(v)
-    else:
-        sx = v[0]
-        sy = v[1]
-        sig = v[2]
-        out = np.zeros((1,1,3))
-    out[:,:,0] = (1 + (sx**2) - (sy**2))/(2* sig**2) #a
-    out[:,:,1] = (4 * sy * sx)/(2* sig**2) #b
-    out[:,:,2] = (1 + (sy**2) - (sx**2))/(2* sig**2) #c
-    return np.squeeze(out)
+# def abc_from_transform_old(v):
+#     if np.asarray(v).ndim == 3:
+#         sx = v[:,:,0]
+#         sy = v[:,:,1]
+#         sig = v[:,:,2]
+#         out = np.zeros_like(v)
+#     else:
+#         sx = v[0]
+#         sy = v[1]
+#         sig = v[2]
+#         out = np.zeros((1,1,3))
+#     out[:,:,0] = (1 + (sx**2) - (sy**2))/(2* sig**2) #a
+#     out[:,:,1] = (4 * sy * sx)/(2* sig**2) #b
+#     out[:,:,2] = (1 + (sy**2) - (sx**2))/(2* sig**2) #c
+#     return np.squeeze(out)
 
-def abc_from_transform(v):
 
-    t = 0.5
-    if np.asarray(v).ndim == 3:
-
-        out = np.zeros_like(v)
-        gp = gauss_from_transform2(v)
-    else:
-
-        out = np.zeros((1,1,3))
-        gp = gauss_from_transform2(np.array(v).reshape(1,1,3))
-    sig_x = np.sqrt(gp[:,:,0]**2 + t**2)
-    sig_y = np.sqrt(gp[:,:,1]**2 + t**2)
-    theta = gp[:,:,2]
-
-    out[:,:,0] = (np.cos(theta) ** 2 / (2 * (sig_x ** 2))) + (np.sin(theta) ** 2 / (2 * (sig_y ** 2)))
-    out[:,:,1] = 2*((np.sin(2 * theta) / (4 * (sig_x ** 2))) + (-np.sin(2 * theta) / (4 * (sig_y ** 2))))
-    out[:,:,2] = (np.sin(theta) ** 2 / (2 * (sig_x ** 2))) + (np.cos(theta) ** 2 / (2 * (sig_y ** 2)))
-
-    return np.squeeze(out)
 
 
 def gauss_from_transform2(v, sig_max=10):
@@ -125,6 +106,27 @@ def abc_from_transform_c_notc(sx, sy, sig, t = 0.45):
     c = 0.5 * ((sinv_sq/sig_x_sq) + (cosv_sq/sig_y_sq))
 
     return a,b,c,add_cost
+
+def abc_from_transform(v, t=0.45):
+
+
+    if np.asarray(v).ndim == 3:
+
+        out = np.zeros_like(v)
+        gp = gauss_from_transform2(v)
+    else:
+
+        out = np.zeros((1,1,3))
+        gp = gauss_from_transform2(np.array(v).reshape(1,1,3))
+    sig_x = np.sqrt(gp[:,:,0]**2 + t**2)
+    sig_y = np.sqrt(gp[:,:,1]**2 + t**2)
+    theta = gp[:,:,2]
+
+    out[:,:,0] = (np.cos(theta) ** 2 / (2 * (sig_x ** 2))) + (np.sin(theta) ** 2 / (2 * (sig_y ** 2)))
+    out[:,:,1] = 2*((np.sin(2 * theta) / (4 * (sig_x ** 2))) + (-np.sin(2 * theta) / (4 * (sig_y ** 2))))
+    out[:,:,2] = (np.sin(theta) ** 2 / (2 * (sig_x ** 2))) + (np.cos(theta) ** 2 / (2 * (sig_y ** 2)))
+
+    return np.squeeze(out)
 
 
 def generate_rgb(gauss_properties, log_scale=False):

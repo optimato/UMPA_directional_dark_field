@@ -3,9 +3,9 @@ import UMPA
 import numpy as np
 from matplotlib import pyplot as plt
 
-from scipy.optimize import brent
+
 from datetime import datetime
-from in_out import load_esrf_data
+
 from single_model import solver_at_resolution
 from scipy import ndimage
 
@@ -105,13 +105,14 @@ class multi_resolution_solver:
             print('Stage out of range')
 
 
-def example_reconstruction(max_iter_final = 20000):
+def example_reconstruction(save_data = False):
 
     final_nw = 10
     final_step = 20
     num_frames = 25
+    max_iter_final = 20000
 
-    save_path = '/home/rs3g18/Documents/2Dstar/DDF-output/test_data/test6'
+    save_path = '/home/rs3g18/Documents/2Dstar/DDF-output/test_data/test7'
     savename = save_path + '_N_' + str(num_frames) + '_step_' + str(final_step) + '_Nw_' + str(
         final_nw) + '_final_max_iter_' + str(max_iter_final)
 
@@ -136,16 +137,17 @@ def example_reconstruction(max_iter_final = 20000):
         plt.title('Reconstrution stage ' + str(i + 1))
         plt.savefig(savename + 'recon_stage_' + str(i) + '.png')
         plt.close(fig)
+        if save_data:
 
-        F = h5py.File(savename + '.h5', 'a')
+	        F = h5py.File(savename + '.h5', 'a')
 
-        F.create_dataset('gauss_properties_stage_' + str(i), data=big_model.single_res_models[i].gauss_properties)
-        F.create_dataset('final_vals_stage_' + str(i), data=big_model.single_res_models[i].final_vals)
-        F.create_dataset('transmission_image_stage_' + str(i), data=big_model.single_res_models[i].result['T'])
-        F.create_dataset('dpcx_stage_' + str(i), data=big_model.single_res_models[i].result['dx'])
-        F.create_dataset('dpcy_stage_' + str(i), data=big_model.single_res_models[i].result['dy'])
-        F.create_dataset('initial_vals_' + str(i), data=big_model.single_res_models[i].initial_vals)
-        F.close()
+	        F.create_dataset('gauss_properties_stage_' + str(i), data=big_model.single_res_models[i].gauss_properties)
+	        F.create_dataset('final_vals_stage_' + str(i), data=big_model.single_res_models[i].final_vals)
+	        F.create_dataset('transmission_image_stage_' + str(i), data=big_model.single_res_models[i].result['T'])
+	        F.create_dataset('dpcx_stage_' + str(i), data=big_model.single_res_models[i].result['dx'])
+	        F.create_dataset('dpcy_stage_' + str(i), data=big_model.single_res_models[i].result['dy'])
+	        F.create_dataset('initial_vals_' + str(i), data=big_model.single_res_models[i].initial_vals)
+	        F.close()
 
         big_model.send_output_to_next_model()
 
