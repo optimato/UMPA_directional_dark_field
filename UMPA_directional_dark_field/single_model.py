@@ -2,7 +2,7 @@
 New method for extracting the directional dark field with multi-resolution approach
 '''
 
-from utils import *
+from .utils import *
 import UMPA
 import numpy as np
 from matplotlib import pyplot as plt
@@ -14,7 +14,7 @@ from datetime import datetime
 
 
 #from cython_utils import abc_from_transform_c
-from utils import abc_from_transform_c_notc as abc_from_transform_c
+from .utils import abc_from_transform_c_notc as abc_from_transform_c
 
 class solver_at_resolution:
     def __init__(self, sams, refs, step, Nw, max_shift=5, initial_vals = None, max_sig = 10, blur_extra=0.45):
@@ -149,13 +149,14 @@ class solver_at_resolution:
         #self.brent_vals[pix_y, pix_x, :] = [mag, theta, sig]
         return [sx, sy, sig]
 
-    def optimise_image(self, method='golden', maxiter=20, tol=None, mode = 'rot'):
+    def optimise_image(self, method='golden', maxiter=20, tol=None, mode = 'rot', transmission_threshold = 5.99):
         start = datetime.now()
         # NEED TO FIGURE OUT WHY CORE DUMPS FOR (0,0) - sholdnt need range(1,sh) here
         print('optimising with {} mode'.format(mode))
         for i in range(self.sh[0]):
             for j in range(self.sh[1]):
-                self.optimise_pixel(i, j, method=method, maxiter=maxiter, tol=tol, mode = mode)
+                if self.result['T'][i,j] < transmission_threshold:
+                    self.optimise_pixel(i, j, method=method, maxiter=maxiter, tol=tol, mode = mode)
 
 
             print('done ' + str((i * self.sh[1]) + j) + ' pixels of ' + str((self.sh[0]) * self.sh[1]))

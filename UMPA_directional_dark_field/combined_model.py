@@ -1,4 +1,4 @@
-from utils import *
+from .utils import *
 import UMPA
 import numpy as np
 from matplotlib import pyplot as plt
@@ -6,7 +6,7 @@ from matplotlib import pyplot as plt
 
 from datetime import datetime
 
-from single_model import solver_at_resolution
+from .single_model import solver_at_resolution
 from scipy import ndimage
 
 class multi_resolution_solver:
@@ -104,15 +104,33 @@ class multi_resolution_solver:
         else:
             print('Stage out of range')
 
+'''
+here is some pseudocode for running this with MPI the easy way
+
+def pseudocode_for_parallel_recon(n_processes, umpa_params):
+
+    proecess_number = get_process_number()
+    sams, refs = get_some_data()
+    
+    big_model = multi_resolution_solver(params)
+    
+    # get roi to use - split into n_processes strips
+    strip_start = process_number // n_processes
+    strip_end = (process_number + 1)
+    
+    
+    
+'''
+
 
 def example_reconstruction(save_data = False):
 
-    final_nw = 10
-    final_step = 20
+    final_nw = 5
+    final_step =1
     num_frames = 25
-    max_iter_final = 20000
+    max_iter_final = 200
 
-    save_path = '/home/rs3g18/Documents/2Dstar/DDF-output/test_data/test7'
+    save_path = '/home/rs3g18/Documents/2Dstar/DDF-output/test_data/test_threshold16'
     savename = save_path + '_N_' + str(num_frames) + '_step_' + str(final_step) + '_Nw_' + str(
         final_nw) + '_final_max_iter_' + str(max_iter_final)
 
@@ -121,16 +139,16 @@ def example_reconstruction(save_data = False):
     sams = sim['meas']
     refs = sim['ref']
 
-    big_model = multi_resolution_solver(sams, refs, final_step, final_nw, step_multiplier=3, n_iters_final=2,
+    big_model = multi_resolution_solver(sams, refs, final_step, final_nw, step_multiplier=3, n_iters_final=3,
                                         blur_extra = 0.05)
 
     for i in range(big_model.n_iters_total):
-        if i < big_model.n_iters_total - 1:
-            rgb = big_model.solve_model(maxiter=10000)
+        if i < big_model.n_iters_total - 2:
+            rgb = big_model.solve_model(maxiter=100, tol=1e-15, mode = 'rot')
         else:
-            rgb = big_model.solve_model(maxiter=max_iter_final, tol=1e-12, mode = 'new')
+            rgb = big_model.solve_model(maxiter=max_iter_final, tol=1e-15, mode = 'new')
 
-        rgb = big_model.single_res_models[i].return_rgb(sigma_max=5)
+        rgb = big_model.single_res_models[i].return_rgb(sigma_max=1.5, log_scale=True)
 
         fig = plt.figure(figsize=(7, 4))
         plt.imshow(rgb)
@@ -139,15 +157,15 @@ def example_reconstruction(save_data = False):
         plt.close(fig)
         if save_data:
 
-	        F = h5py.File(savename + '.h5', 'a')
+            F = h5py.File(savename + '.h5', 'a')
 
-	        F.create_dataset('gauss_properties_stage_' + str(i), data=big_model.single_res_models[i].gauss_properties)
-	        F.create_dataset('final_vals_stage_' + str(i), data=big_model.single_res_models[i].final_vals)
-	        F.create_dataset('transmission_image_stage_' + str(i), data=big_model.single_res_models[i].result['T'])
-	        F.create_dataset('dpcx_stage_' + str(i), data=big_model.single_res_models[i].result['dx'])
-	        F.create_dataset('dpcy_stage_' + str(i), data=big_model.single_res_models[i].result['dy'])
-	        F.create_dataset('initial_vals_' + str(i), data=big_model.single_res_models[i].initial_vals)
-	        F.close()
+            F.create_dataset('gauss_properties_stage_' + str(i), data=big_model.single_res_models[i].gauss_properties)
+            F.create_dataset('final_vals_stage_' + str(i), data=big_model.single_res_models[i].final_vals)
+            F.create_dataset('transmission_image_stage_' + str(i), data=big_model.single_res_models[i].result['T'])
+            F.create_dataset('dpcx_stage_' + str(i), data=big_model.single_res_models[i].result['dx'])
+            F.create_dataset('dpcy_stage_' + str(i), data=big_model.single_res_models[i].result['dy'])
+            F.create_dataset('initial_vals_' + str(i), data=big_model.single_res_models[i].initial_vals)
+            F.close()
 
         big_model.send_output_to_next_model()
 
@@ -156,6 +174,6 @@ def example_reconstruction(save_data = False):
 
 if __name__ == "__main__":
     import h5py
-    big_model = example_reconstruction()
+    big_model = example_reconstruction(save_data=True)
 
 
