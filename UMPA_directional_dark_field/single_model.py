@@ -17,7 +17,7 @@ from datetime import datetime
 from .utils import abc_from_transform_c_notc as abc_from_transform_c
 
 class solver_at_resolution:
-    def __init__(self, sams, refs, step, Nw, max_shift=5, initial_vals = None, max_sig = 10, blur_extra=0.45):
+    def __init__(self, sams, refs, step, Nw, max_shift=5, initial_vals = None, max_sig = 10, blur_extra=0.45, pos_list = None):
 
         # Setting up blurable umpa model it relies on
 
@@ -26,7 +26,7 @@ class solver_at_resolution:
         self.max_shift = max_shift
         self.max_sig = max_sig
 
-        self.PM = UMPA.model.UMPAModelDFKernel(sam_list=sams, ref_list=refs, mask_list=None, window_size=Nw, max_shift=max_shift)
+        self.PM = UMPA.model.UMPAModelDFKernel(sam_list=sams, ref_list=refs, pos_list=pos_list, mask_list=None, window_size=Nw, max_shift=max_shift)
         self.PM.shift_mode = True
         self.PM.set_step(step)
         self.sh = self.PM.sh
