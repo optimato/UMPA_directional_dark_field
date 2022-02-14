@@ -66,7 +66,7 @@ def gauss_from_transform(v, sig_max=10):
 
     return array_to_fill
 
-def abc_from_transform_c_notc(sx, sy, sig, t = 0.45):
+def abc_from_transform_c_notc(sx, sy, sig, t = 0.45, max_sig=10):
     ''' Note: set t to 0.45 for ddf paper data'''
     #theta, sig_x_sq, sig_y_sq = 0
     add_cost = 0
@@ -81,7 +81,7 @@ def abc_from_transform_c_notc(sx, sy, sig, t = 0.45):
         if eps >=1:
             eps = eps/(eps + 0.01)
 
-    if sig >10:
+    if sig >max_sig:
         add_cost = add_cost + (sig - 10) * 10
     elif sig < 0:
         add_cost = add_cost + ((sig)* -10)

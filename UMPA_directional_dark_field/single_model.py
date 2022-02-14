@@ -81,7 +81,7 @@ class solver_at_resolution:
             print('mode not specified')
             raise NotImplementedError
 
-        a, b, c, cost_eps = abc_from_transform_c(sx, sy, sig, self.blur_extra)
+        a, b, c, cost_eps = abc_from_transform_c(sx, sy, sig, self.blur_extra, self.max_sig)
         umpa_pix_x = (pix_x * self.step) + self.padding
         umpa_pix_y = (pix_y * self.step) + self.padding
 

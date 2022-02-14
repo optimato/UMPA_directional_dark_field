@@ -4,7 +4,6 @@ import numpy as np
 from matplotlib import pyplot as plt
 import h5py
 
-
 from datetime import datetime
 
 from .single_model import solver_at_resolution
@@ -59,10 +58,10 @@ class multi_resolution_solver:
         if stage is None:
             stage = self.stage
             self.stage += 1
-            if stage == 0:
-                blur = 3
+            if stage == 0 or stage ==1:
+                blur = 9
             else:
-                blur = 2
+                blur = 3
 
         #removing the bits that have the opposite symmetry to make bluring work
 
@@ -95,8 +94,8 @@ class multi_resolution_solver:
                     new_arr[i, j, :] = output_without_symmetry[py, px, :]
 
             # blur
-            new_arr[:, :, 0] = ndimage.uniform_filter((new_arr[:,:,0]), size=(blur, blur), mode='reflect') #* np.sign(ndimage.median_filter(new_arr[:,:,0], size=(blur, blur), mode='reflect'))
-            new_arr[:, :, 1] = ndimage.uniform_filter((new_arr[:,:,1]), size=(blur, blur), mode='reflect') #* np.sign(ndimage.median_filter(new_arr[:,:,1], size=(blur, blur), mode='reflect'))
+            new_arr[:, :, 0] = ndimage.percentile_filter((new_arr[:,:,0]), 50, size=(blur, blur), mode='reflect') #* np.sign(ndimage.median_filter(new_arr[:,:,0], size=(blur, blur), mode='reflect'))
+            new_arr[:, :, 1] = ndimage.percentile_filter((new_arr[:,:,1]), 50, size=(blur, blur), mode='reflect') #* np.sign(ndimage.median_filter(new_arr[:,:,1], size=(blur, blur), mode='reflect'))
             new_arr[:, :, 2] = ndimage.median_filter((new_arr[:,:,2]), size=(blur, blur), mode='reflect')
 
             self.single_res_models[stage+1].initial_vals = new_arr
@@ -126,15 +125,15 @@ def pseudocode_for_parallel_recon(n_processes, umpa_params):
 def do_it_all_for_me(sams, refs, save_path, final_nw=5, final_step=5, pos_list=None, sigma_max=1.5):
 
     num_frames = len(sams)
-    max_iter_final = 200
+    max_iter_final = 500
 
     savename = save_path + '_N_' + str(num_frames) + '_step_' + str(final_step) + '_Nw_' + str(
         final_nw) + '_final_max_iter_' + str(max_iter_final)
 
-    big_model = multi_resolution_solver(sams, refs, final_step, final_nw, step_multiplier=3, n_iters_final=2, pos_list=pos_list)
+    big_model = multi_resolution_solver(sams, refs, final_step, final_nw, step_multiplier=3, n_iters_final=0, pos_list=pos_list)
 
     for i in range(big_model.n_iters_total):
-        if i < big_model.n_iters_total - 2:
+        if i < big_model.n_iters_bin - 1:
             rgb = big_model.solve_model(maxiter=100, tol=1e-15, mode='rot')
         else:
             rgb = big_model.solve_model(maxiter=max_iter_final, tol=1e-15, mode='new')
@@ -182,6 +181,6 @@ def test_reconstruction(save_data = False):
 
 if __name__ == "__main__":
     import h5py
-    big_model = example_reconstruction(save_data=False)
-
+    #big_model = example_reconstruction(save_data=False)
+    print('ITs done')
 
