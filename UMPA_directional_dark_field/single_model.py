@@ -17,16 +17,17 @@ from datetime import datetime
 from .utils import abc_from_transform_c_notc as abc_from_transform_c
 
 class solver_at_resolution:
-    def __init__(self, sams, refs, step, Nw, max_shift=5, initial_vals = None, max_sig = 10, blur_extra=0.45, pos_list = None):
-
-        # Setting up blurable umpa model it relies on
+    def __init__(self, sams, refs, step, Nw, max_shift=5, initial_vals = None, max_sig = 10, blur_extra=0.45, pos_list = None, ROI=None):
+        '''
+        This model was not intended to be directly called by the user.
+        '''
 
         self.step = step
         self.Nw = Nw
         self.max_shift = max_shift
         self.max_sig = max_sig
 
-        self.PM = UMPA.model.UMPAModelDFKernel(sam_list=sams, ref_list=refs, pos_list=pos_list, mask_list=None, window_size=Nw, max_shift=max_shift)
+        self.PM = UMPA.model.UMPAModelDFKernel(sam_list=sams, ref_list=refs, pos_list=pos_list, mask_list=None, window_size=Nw, max_shift=max_shift, ROI=ROI)
         self.PM.shift_mode = True
         self.PM.set_step(step)
         self.sh = self.PM.sh
@@ -118,38 +119,14 @@ class solver_at_resolution:
             sx = res['x'][0]
             sy = res['x'][1]
             sig = res['x'][2]
-            #sig = minimize_scalar(self.cost_for_blur_new, bounds=(0.1, 4), args=(sx, sy, 'sig', pix_y, pix_x),  method=method, tol=tol, options={'maxiter': maxiter})['x']
-
-            #sxn = minimize_scalar(self.cost_for_blur_new, bounds=(-1, 1), args=(sy, sig, 'sx', pix_y, pix_x), tol=1e-12, method=method, options={'maxiter': 20})
-
-            #syn = minimize_scalar(self.cost_for_blur_new, bounds=(-1, 1), args=(sx, sig, 'sy', pix_y, pix_x), tol=1e-12, method=method, options={'maxiter': 20})
-            # sxv = abs(sx)
-            # syv = abs(sy)
-            #
-            # if sxv < syv:
-
-            #     for i in range(2):
-            #
-            #         sx = minimize_scalar(self.cost_for_blur_new, bounds=(-1, 1), args=(abs(sy), sig, 'sx', pix_y, pix_x), tol=1e-12, method=method, options={'maxiter': maxiter})['x']
-            #         sy = minimize_scalar(self.cost_for_blur_new, bounds=(0, 1), args=(sx, sig, 'sy', pix_y, pix_x), tol=1e-12, method=method, options={'maxiter': maxiter})['x']
-            #         sig = minimize_scalar(self.cost_for_blur_new, bounds=(0.1, 4), args=(sx, sy, 'sig', pix_y, pix_x),
-            #                               method=method, tol=tol, options={'maxiter': maxiter})['x']
-            # else:
-            #     for i in range(2):
-            #         sy = minimize_scalar(self.cost_for_blur_new, bounds=(-1, 1), args=(abs(sx), sig, 'sy', pix_y, pix_x), tol=1e-12, method=method, options={'maxiter': maxiter})['x']
-            #         sx = minimize_scalar(self.cost_for_blur_new, bounds=(0, 1), args=(sy, sig, 'sx', pix_y, pix_x), tol=1e-12, method=method, options={'maxiter': maxiter})['x']
-            #         sig = minimize_scalar(self.cost_for_blur_new, bounds=(0.1, 4), args=(sx, sy, 'sig', pix_y, pix_x),
-            #                               method=method, tol=tol, options={'maxiter': maxiter})['x']
-
-
-
-
 
         self.final_vals[pix_y, pix_x, :] = [sx, sy, sig]
-        #self.brent_vals[pix_y, pix_x, :] = [mag, theta, sig]
         return [sx, sy, sig]
 
     def optimise_image(self, method='golden', maxiter=20, tol=None, mode = 'rot', transmission_threshold = 5.99):
+        '''
+        Optimises the whole image
+        '''
         start = datetime.now()
         # NEED TO FIGURE OUT WHY CORE DUMPS FOR (0,0) - sholdnt need range(1,sh) here
         print('optimising with {} mode'.format(mode))

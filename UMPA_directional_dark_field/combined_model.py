@@ -11,7 +11,11 @@ from scipy import ndimage
 
 class multi_resolution_solver:
     def __init__(self, sams, refs, final_step, final_nw, n_iters_bin=3, n_iters_final = 2, max_shift=5, step_multiplier=3,
-                 max_sig=10, blur_extra=0.45, pos_list = None):
+                 max_sig=10, blur_extra=0.45, pos_list=None, ROI=None):
+        '''
+
+
+        '''
 
         self.single_res_models = []
         self.n_iters_total = n_iters_bin + n_iters_final
@@ -23,10 +27,10 @@ class multi_resolution_solver:
         self.blur_extra = blur_extra
 
         for i in range(n_iters_bin):
-            self.single_res_models.append(solver_at_resolution(sams, refs, step=final_step*(step_multiplier**(n_iters_bin - i - 1)), Nw=final_nw, max_shift=max_shift, max_sig= self.max_sig, blur_extra = self.blur_extra, pos_list = None))
+            self.single_res_models.append(solver_at_resolution(sams, refs, step=final_step*(step_multiplier**(n_iters_bin - i - 1)), Nw=final_nw, max_shift=max_shift, max_sig= self.max_sig, blur_extra = self.blur_extra, pos_list = pos_list, ROI=ROI))
             print('Created model number {}, step is {}'.format(i, final_step * (step_multiplier ** (n_iters_bin - i - 1))))
         for i in range(n_iters_final):
-            self.single_res_models.append(solver_at_resolution(sams, refs, step=final_step, Nw=final_nw, max_shift=max_shift, max_sig=self.max_sig))
+            self.single_res_models.append(solver_at_resolution(sams, refs, step=final_step, Nw=final_nw, max_shift=max_shift, max_sig=self.max_sig, blur_extra = self.blur_extra, pos_list=pos_list, ROI=ROI))
             print('Created final {}, step is {}'.format(i, final_step))
 
 
@@ -104,25 +108,8 @@ class multi_resolution_solver:
         else:
             print('Stage out of range')
 
-'''
-here is some pseudocode for running this with MPI the easy way
 
-def pseudocode_for_parallel_recon(n_processes, umpa_params):
-
-    proecess_number = get_process_number()
-    sams, refs = get_some_data()
-    
-    big_model = multi_resolution_solver(params)
-    
-    # get roi to use - split into n_processes strips
-    strip_start = process_number // n_processes
-    strip_end = (process_number + 1)
-    
-    
-    
-'''
-
-def do_it_all_for_me(sams, refs, save_path, final_nw=5, final_step=5, pos_list=None, sigma_max=1.5):
+def do_it_all_for_me(sams, refs, save_path, final_nw=5, final_step=5, pos_list=None, sigma_max=1.5, ROI = None):
 
     num_frames = len(sams)
     max_iter_final = 500
@@ -130,7 +117,7 @@ def do_it_all_for_me(sams, refs, save_path, final_nw=5, final_step=5, pos_list=N
     savename = save_path + '_N_' + str(num_frames) + '_step_' + str(final_step) + '_Nw_' + str(
         final_nw) + '_final_max_iter_' + str(max_iter_final)
 
-    big_model = multi_resolution_solver(sams, refs, final_step, final_nw, step_multiplier=3, n_iters_final=0, pos_list=pos_list)
+    big_model = multi_resolution_solver(sams, refs, final_step, final_nw, step_multiplier=3, n_iters_final=0, pos_list=pos_list, ROI=ROI)
 
     for i in range(big_model.n_iters_total):
         if i < big_model.n_iters_bin - 1:
@@ -160,6 +147,7 @@ def do_it_all_for_me(sams, refs, save_path, final_nw=5, final_step=5, pos_list=N
     print('done')
     return big_model
 
+
 def test_reconstruction(save_data = False):
 
     final_nw = 5
@@ -181,6 +169,6 @@ def test_reconstruction(save_data = False):
 
 if __name__ == "__main__":
     import h5py
-    #big_model = example_reconstruction(save_data=False)
+    big_model = test_reconstruction(save_data=False)
     print('ITs done')
 

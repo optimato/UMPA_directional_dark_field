@@ -1,25 +1,6 @@
 import numpy as np
 
 
-# def abc_from_transform_old(v):
-#     if np.asarray(v).ndim == 3:
-#         sx = v[:,:,0]
-#         sy = v[:,:,1]
-#         sig = v[:,:,2]
-#         out = np.zeros_like(v)
-#     else:
-#         sx = v[0]
-#         sy = v[1]
-#         sig = v[2]
-#         out = np.zeros((1,1,3))
-#     out[:,:,0] = (1 + (sx**2) - (sy**2))/(2* sig**2) #a
-#     out[:,:,1] = (4 * sy * sx)/(2* sig**2) #b
-#     out[:,:,2] = (1 + (sy**2) - (sx**2))/(2* sig**2) #c
-#     return np.squeeze(out)
-
-
-
-
 def gauss_from_transform2(v, sig_max=10):
     '''note sigma here referes to the traditional sigma'''
     array_to_fill = np.zeros_like(v)
