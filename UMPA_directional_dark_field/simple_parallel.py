@@ -140,7 +140,7 @@ def do_it_all_for_me_multiprocessing(sams, refs, save_path, final_nw=5, final_st
 def test_reconstruction_multiprocessing(save_path = ''):
 
     final_nw = 5
-    final_step =1
+    final_step =5
     num_frames = 25
     max_iter_final = 200
 
@@ -153,7 +153,7 @@ def test_reconstruction_multiprocessing(save_path = ''):
     sams = sim['meas']
     refs = sim['ref']
 
-    rgb = do_it_all_for_me_multiprocessing(sams, refs, savename, final_nw=final_nw, final_step=final_step, pos_list=None, sigma_max=1.5, blur_extra=0.05)
+    rgb = do_it_all_for_me_multiprocessing(sams, refs, savename, final_nw=final_nw, final_step=final_step, pos_list=None, sigma_max=1.5, blur_extra=0.05, n_process=8)
     return rgb
 
 if __name__ == '__main__':
