@@ -4,6 +4,7 @@ import h5py
 import os
 from glob import glob
 from itertools import repeat
+import UMPA
 
 from . import do_it_all_for_me
 from . import generate_rgb
@@ -33,7 +34,7 @@ def arr_stitch_3d(arr_list):
 
 
 def do_it_all_for_me_multiprocessing(sams, refs, save_path, final_nw=5, final_step=40,
-                                     pos_list=None, sigma_max=1.5, max_shift=5, ROI=None, n_process=16):
+                                     pos_list=None, sigma_max=1.5, max_shift=5, ROI=None, blur_extra=0.45, n_process=16):
 
     try:
         from multiprocessing import Pool
@@ -83,7 +84,7 @@ def do_it_all_for_me_multiprocessing(sams, refs, save_path, final_nw=5, final_st
         savepaths.append(tmp_savepath)
 
     args = zip(repeat(sams), repeat(refs), savepaths, repeat(final_nw), repeat(final_step), repeat(pos_list),
-               repeat(sigma_max), repeat(max_shift), ROIs)
+               repeat(sigma_max), repeat(max_shift), ROIs, repeat(blur_extra))
     # print(args[0])
     try:
         with Pool(n_process) as pool:
@@ -135,3 +136,25 @@ def do_it_all_for_me_multiprocessing(sams, refs, save_path, final_nw=5, final_st
     plt.savefig(out_path[:-5] + '.png')
     plt.close(fig)
     return rgb
+
+def test_reconstruction_multiprocessing(save_path = ''):
+
+    final_nw = 5
+    final_step =1
+    num_frames = 25
+    max_iter_final = 200
+
+    save_path = save_path + 'test_reconstruction'
+    savename = save_path + '_N_' + str(num_frames) + '_step_' + str(final_step) + '_Nw_' + str(
+        final_nw) + '_final_max_iter_' + str(max_iter_final)
+
+    sim = UMPA.utils.prep_simul()
+
+    sams = sim['meas']
+    refs = sim['ref']
+
+    rgb = do_it_all_for_me_multiprocessing(sams, refs, savename, final_nw=final_nw, final_step=final_step, pos_list=None, sigma_max=1.5, blur_extra=0.05)
+    return rgb
+
+if __name__ == '__main__':
+    test_reconstruction_multiprocessing()

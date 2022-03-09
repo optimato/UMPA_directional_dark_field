@@ -109,7 +109,7 @@ class multi_resolution_solver:
             print('Stage out of range')
 
 
-def do_it_all_for_me(sams, refs, save_path, final_nw=5, final_step=5, pos_list=None, sigma_max=1.5, max_shift=5, ROI = None):
+def do_it_all_for_me(sams, refs, save_path, final_nw=5, final_step=5, pos_list=None, sigma_max=1.5, max_shift=5, ROI = None, blur_extra=0.45):
 
     num_frames = len(sams)
     max_iter_final = 500
@@ -117,7 +117,7 @@ def do_it_all_for_me(sams, refs, save_path, final_nw=5, final_step=5, pos_list=N
     savename = save_path + '_N_' + str(num_frames) + '_step_' + str(final_step) + '_Nw_' + str(
         final_nw) + '_final_max_iter_' + str(max_iter_final)
 
-    big_model = multi_resolution_solver(sams, refs, final_step, final_nw, step_multiplier=3, n_iters_final=0, max_shift=max_shift, pos_list=pos_list, ROI=ROI)
+    big_model = multi_resolution_solver(sams, refs, final_step, final_nw, step_multiplier=3, n_iters_final=0, max_shift=max_shift, pos_list=pos_list, ROI=ROI, blur_extra=blur_extra)
 
     for i in range(big_model.n_iters_total):
         if i < big_model.n_iters_bin - 1:
@@ -164,7 +164,7 @@ def test_reconstruction(save_data = False):
     sams = sim['meas']
     refs = sim['ref']
 
-    big_model = do_it_all_for_me(sams, refs, savename, final_nw=final_nw, final_step=final_step, pos_list=None, sigma_max=1.5)
+    big_model = do_it_all_for_me(sams, refs, savename, final_nw=final_nw, final_step=final_step, pos_list=None, sigma_max=1.5, blur_extra=0.05)
     return big_model
 
 if __name__ == "__main__":
