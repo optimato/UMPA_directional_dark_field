@@ -119,7 +119,7 @@ def generate_rgb(gauss_properties, log_scale=False):
 
     magnitude = np.sqrt(gauss_properties[:,:,0]**2 + gauss_properties[:,:,1]**2)
 
-    directionality = 1- (gauss_properties[:,:,1] / gauss_properties[:,:,0])
+    directionality = 1- ((gauss_properties[:,:,1]**2) / (gauss_properties[:,:,0]**2))
     directionality = np.nan_to_num(directionality)
 
     hsv = np.empty((3, gauss_properties.shape[0], gauss_properties.shape[1]))
