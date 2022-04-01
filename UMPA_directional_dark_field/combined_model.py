@@ -43,9 +43,9 @@ class multi_resolution_solver:
 
         if mode is None:
             if stage <= 1:
-                mode = 'rot'
+                mode = 'coordinate_descent'
             else:
-                mode = 'new'
+                mode = 'gradient_descent'
 
         self.single_res_models[stage].initial_run_of_model()
         self.single_res_models[stage].optimise_image(method=method, maxiter=maxiter, tol=tol, mode = mode)
@@ -121,9 +121,9 @@ def do_it_all_for_me(sams, refs, save_path, final_nw=5, final_step=5, pos_list=N
 
     for i in range(big_model.n_iters_total):
         if i < big_model.n_iters_bin - 1:
-            rgb = big_model.solve_model(maxiter=100, tol=1e-15, mode='rot')
+            rgb = big_model.solve_model(maxiter=100, tol=1e-15, mode='coordinate_descent')
         else:
-            rgb = big_model.solve_model(maxiter=max_iter_final, tol=1e-15, mode='new')
+            rgb = big_model.solve_model(maxiter=max_iter_final, tol=1e-15, mode='gradient_descent')
 
         rgb = big_model.single_res_models[i].return_rgb(sigma_max=sigma_max, log_scale=True)
 

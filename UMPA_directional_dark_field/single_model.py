@@ -27,6 +27,8 @@ class solver_at_resolution:
         self.max_shift = max_shift
         self.max_sig = max_sig
 
+        self.ROI = ROI
+
         self.PM = UMPA.model.UMPAModelDFKernel(sam_list=sams, ref_list=refs, pos_list=pos_list, mask_list=None, window_size=Nw, max_shift=max_shift, ROI=ROI)
         self.PM.shift_mode = True
         self.PM.set_step(step)
@@ -38,9 +40,6 @@ class solver_at_resolution:
         if initial_vals is None:
             self.initial_vals = np.zeros(self.sh + (3,))
             self.initial_vals[:,:,2] = 0.4
-            #self.initial_vals[:,:,1] = 0.01
-            #self.initial_vals[:,:,0] = 0.01
-
         else:
             self.initial_vals = initial_vals
 
@@ -54,6 +53,8 @@ class solver_at_resolution:
     def initial_run_of_model(self):
         start = datetime.now()
         self.result = self.PM.match(self.step, abc_from_transform(self.initial_vals, self.blur_extra))
+        self.result['dx'] = np.clip(self.result['dx'], -self.max_shift, self.max_shift)
+        self.result['dy'] = np.clip(self.result['dy'], -self.max_shift, self.max_shift)
         print('Initial run to find phase image took: ' + str(datetime.now() - start))
 
     def cost_for_blur_new(self, v1, v2, v3, mode, pix_y, pix_x):
@@ -70,27 +71,27 @@ class solver_at_resolution:
             sx = v2 * np.cos(v1)
             sy = v2 * np.sin(v1)
             sig = v3
-        elif mode == 'sx':
+        elif mode == 'together':
             sx = v1[0]
             sy = v1[1]
             sig = v1[2]
-        elif mode == 'sy':
-            sy = v1
-            sx = v2
-            sig = v3
         else:
             print('mode not specified')
             raise NotImplementedError
 
         a, b, c, cost_eps = abc_from_transform_c(sx, sy, sig, self.blur_extra, self.max_sig)
-        umpa_pix_x = (pix_x * self.step) + self.padding
-        umpa_pix_y = (pix_y * self.step) + self.padding
+        if self.ROI == None:
+            umpa_pix_x = (pix_x * self.step) + self.padding
+            umpa_pix_y = (pix_y * self.step) + self.padding
+        else:
+            umpa_pix_x = (pix_x * self.step) + self.padding + self.ROI[1][0]
+            umpa_pix_y = (pix_y * self.step) + self.padding + self.ROI[0][0]
 
         cost = self.PM.cost(umpa_pix_y, umpa_pix_x, self.result['dy'][pix_y, pix_x], self.result['dx'][pix_y, pix_x], a, b, c)[0]
 
         return cost + cost_eps
 
-    def optimise_pixel(self, pix_y, pix_x, method='golden', maxiter=20, tol=None, mode = 'rot'):
+    def optimise_pixel(self, pix_y, pix_x, method='golden', maxiter=20, tol=None, mode='coordinate_descent'):
         method = 'golden'
 
         sx = self.initial_vals[pix_y, pix_x, 0]
@@ -98,7 +99,7 @@ class solver_at_resolution:
         sig = self.initial_vals[pix_y, pix_x, 2]
 
 
-        if mode == 'rot':
+        if mode == 'coordinate_descent':
             for i in range(1):
 
                 mag = np.sqrt(sx ** 2 + sy ** 2)
@@ -115,7 +116,7 @@ class solver_at_resolution:
                 sx = mag * np.cos(theta)
                 sy = mag * np.sin(theta)
         else:
-            res = minimize(self.cost_for_blur_new, x0=[sx, sy, sig], args = ('cheese', 'toast', 'sx', pix_y, pix_x), method='Nelder-Mead', options={'maxiter': maxiter, 'fatol': 1e-12})
+            res = minimize(self.cost_for_blur_new, x0=[sx, sy, sig], args = ('fake', 'argument', 'together', pix_y, pix_x), method='Nelder-Mead', options={'maxiter': maxiter, 'fatol': 1e-12})
             sx = res['x'][0]
             sy = res['x'][1]
             sig = res['x'][2]
@@ -123,7 +124,7 @@ class solver_at_resolution:
         self.final_vals[pix_y, pix_x, :] = [sx, sy, sig]
         return [sx, sy, sig]
 
-    def optimise_image(self, method='golden', maxiter=20, tol=None, mode = 'rot', transmission_threshold = 5.99):
+    def optimise_image(self, method='golden', maxiter=20, tol=None, mode = 'coordinate_descent', transmission_threshold = 5.99):
         '''
         Optimises the whole image
         '''
