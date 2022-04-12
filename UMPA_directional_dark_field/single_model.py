@@ -19,7 +19,7 @@ from .utils import abc_from_transform_c_notc as abc_from_transform_c
 class solver_at_resolution:
     def __init__(self, sams, refs, step, Nw, max_shift=5, initial_vals = None, max_sig = 10, blur_extra=0.45, pos_list = None, ROI=None):
         '''
-        This model was not intended to be directly called by the user.
+        This model was not intended to be directly called by the user
         '''
 
         self.step = step
@@ -51,6 +51,9 @@ class solver_at_resolution:
         self.brent_vals = np.zeros_like(self.initial_vals)
 
     def initial_run_of_model(self):
+        '''
+        This step does the initial UMPA run to find translations due to refraction
+        '''
         start = datetime.now()
         self.result = self.PM.match(self.step, abc_from_transform(self.initial_vals, self.blur_extra))
         self.result['dx'] = np.clip(self.result['dx'], -self.max_shift, self.max_shift)
@@ -58,6 +61,11 @@ class solver_at_resolution:
         print('Initial run to find phase image took: ' + str(datetime.now() - start))
 
     def cost_for_blur_new(self, v1, v2, v3, mode, pix_y, pix_x):
+        '''
+        Calculates the cost of blurring at pix_y pix_x using differeng gaussian parameters
+        'mode' sets which order/tranform is used
+        Note that co-ordinates are in OUTPUT frame of reference, not INPUT frame of reference, messing this us causes confusion!!!
+        '''
 
         if mode == 'sig':
             sig = v1
@@ -92,6 +100,9 @@ class solver_at_resolution:
         return cost + cost_eps
 
     def optimise_pixel(self, pix_y, pix_x, method='golden', maxiter=20, tol=None, mode='coordinate_descent'):
+        '''
+        Optimises a pixel
+        '''
         method = 'golden'
 
         sx = self.initial_vals[pix_y, pix_x, 0]
@@ -143,6 +154,9 @@ class solver_at_resolution:
         print('Average pixel optimisation time was: ' + str((datetime.now() - start)/((self.sh[0] - 1) * self.sh[1])))
 
     def return_rgb(self, sigma_max=True, log_scale=False):
+        '''
+        Return an RGB image
+        '''
 
         # cant see an easier way to do this
         if sigma_max==True:

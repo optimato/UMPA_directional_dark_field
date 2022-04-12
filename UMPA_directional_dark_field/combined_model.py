@@ -10,10 +10,19 @@ from .single_model import solver_at_resolution
 from scipy import ndimage
 
 class multi_resolution_solver:
-    def __init__(self, sams, refs, final_step, final_nw, n_iters_bin=3, n_iters_final = 2, max_shift=5, step_multiplier=3,
+    def __init__(self, sams, refs, final_step, final_nw, n_iters_bin=3, n_iters_final=2, max_shift=5, step_multiplier=3,
                  max_sig=10, blur_extra=0.45, pos_list=None, ROI=None):
         '''
-
+        sams -> list of sample images
+        refs -> list of referecce images
+        final_step -> int, the requird step size of the final reconstrcution
+        final_nw -> int, the final UMPA window will have size (2*nw +1)
+        max_shift -> int, maximum phase shift passed to UMPA
+        step multiplier -> int, the undersampling to be applied between iterations
+        max_sig -> float, the maximum sigma value of the directional dark-field gaussian kernel
+        blur_extra -> float, the sigma of the antialiasing gaussian kernel
+        pos_list -> list of positions if using sample stepping (See UMPA)
+        ROI -> region of interest for rectonstruction (See UMPA)
 
         '''
 
@@ -36,7 +45,12 @@ class multi_resolution_solver:
 
     def solve_model(self, stage = None, method='golden', maxiter=20, tol=None, mode = None):
         '''
-        stage = 0 for the first model
+        Optimises every pixel in the image at a given stage
+        stage -> int, stage to solve at (None for default)
+        method -> string, the solver to use - see scipy.optimise for details, default is 'golden'
+        maxiter -> int, the maximum number of iterations of the solver at each pixel
+        tol -> float, the tolerance of the solver (None to use default)
+        mode -> string. 'coordinate_descent' or 'gradient_descent'. None for script to choose best option.
         '''
         if stage is None:
             stage = self.stage
@@ -54,9 +68,11 @@ class multi_resolution_solver:
 
     def send_output_to_next_model(self, stage=None, blur=None):
         '''
-        stage = 0 for first model
+        Sends the output of one iteration to become the input of the next after applying upscaling and blurring the image
+        to prevent aliasing
+        stage -> int, the stage you are passing from. Use None for default.
+        blur -> int, the size of the kernel for bluring. Use None for default.
 
-        TODO: make it so that it doesnt error if stage > max
         '''
 
         if stage is None:
@@ -109,13 +125,26 @@ class multi_resolution_solver:
             print('Stage out of range')
 
 
-def do_it_all_for_me(sams, refs, save_path, final_nw=5, final_step=5, pos_list=None, sigma_max=1.5, max_shift=5, ROI = None, blur_extra=0.45):
+def do_it_all_for_me(sams, refs, save_path=None, final_nw=5, final_step=5, pos_list=None, sigma_max=15, max_shift=5, ROI = None, blur_extra=0.45):
+    '''
+    A function for running everything
+    sams -> list of sample frames
+    refs -> list of reference frames
+    savepath -> string containing path to save, None for no saving
+    final_nw -> int, (2*final_nw +1) is window size in final iteration
+    final_step -> int, the UMPA step size in the final iteration
+    post_list -> list of positions if using sample stepping, None for diffuser stepping
+    sigma_max -> float, the maximum allowable sigma for the gaussian blur
+    max_shift -> float, the maximum displacement for phase shift in UMPA
+    ROI -> Region of interest where image will be analysed (See UMPA), None to use whole image
+    blur_extra -> float, the kernel size for anti-alisaising kernel
+    '''
 
     num_frames = len(sams)
     max_iter_final = 500
-
-    savename = save_path + '_N_' + str(num_frames) + '_step_' + str(final_step) + '_Nw_' + str(
-        final_nw) + '_final_max_iter_' + str(max_iter_final)
+    if save_path is not None:
+        savename = save_path + '_N_' + str(num_frames) + '_step_' + str(final_step) + '_Nw_' + str(
+            final_nw) + '_final_max_iter_' + str(max_iter_final)
 
     big_model = multi_resolution_solver(sams, refs, final_step, final_nw, step_multiplier=3, n_iters_final=0, max_shift=max_shift, pos_list=pos_list, ROI=ROI, blur_extra=blur_extra)
 
@@ -127,20 +156,22 @@ def do_it_all_for_me(sams, refs, save_path, final_nw=5, final_step=5, pos_list=N
 
         rgb = big_model.single_res_models[i].return_rgb(sigma_max=sigma_max, log_scale=True)
 
-        fig = plt.figure(figsize=(7, 4))
-        plt.imshow(rgb)
-        plt.title('Reconstrution stage ' + str(i + 1))
-        plt.savefig(savename + 'recon_stage_' + str(i) + '.png')
-        plt.close(fig)
+        if save_path is not None:
 
-        F = h5py.File(savename + '.h5', 'a')
-        F.create_dataset('gauss_properties_stage_' + str(i), data=big_model.single_res_models[i].gauss_properties)
-        F.create_dataset('final_vals_stage_' + str(i), data=big_model.single_res_models[i].final_vals)
-        F.create_dataset('transmission_image_stage_' + str(i), data=big_model.single_res_models[i].result['T'])
-        F.create_dataset('dpcx_stage_' + str(i), data=big_model.single_res_models[i].result['dx'])
-        F.create_dataset('dpcy_stage_' + str(i), data=big_model.single_res_models[i].result['dy'])
-        F.create_dataset('initial_vals_' + str(i), data=big_model.single_res_models[i].initial_vals)
-        F.close()
+            fig = plt.figure(figsize=(7, 4))
+            plt.imshow(rgb)
+            plt.title('Reconstrution stage ' + str(i + 1))
+            plt.savefig(savename + 'recon_stage_' + str(i) + '.png')
+            plt.close(fig)
+
+            F = h5py.File(savename + '.h5', 'a')
+            F.create_dataset('gauss_properties_stage_' + str(i), data=big_model.single_res_models[i].gauss_properties)
+            F.create_dataset('final_vals_stage_' + str(i), data=big_model.single_res_models[i].final_vals)
+            F.create_dataset('transmission_image_stage_' + str(i), data=big_model.single_res_models[i].result['T'])
+            F.create_dataset('dpcx_stage_' + str(i), data=big_model.single_res_models[i].result['dx'])
+            F.create_dataset('dpcy_stage_' + str(i), data=big_model.single_res_models[i].result['dy'])
+            F.create_dataset('initial_vals_' + str(i), data=big_model.single_res_models[i].initial_vals)
+            F.close()
 
         big_model.send_output_to_next_model()
 
@@ -148,7 +179,10 @@ def do_it_all_for_me(sams, refs, save_path, final_nw=5, final_step=5, pos_list=N
     return big_model
 
 
-def test_reconstruction(save_data = False):
+def test_reconstruction(save_data=False):
+    '''
+    Test Code
+    '''
 
     final_nw = 5
     final_step =10
@@ -164,11 +198,14 @@ def test_reconstruction(save_data = False):
     sams = sim['meas']
     refs = sim['ref']
 
-    big_model = do_it_all_for_me(sams, refs, savename, final_nw=final_nw, final_step=final_step, pos_list=None, sigma_max=1.5, blur_extra=0.05)
+    if save_data == False:
+        big_model = do_it_all_for_me(sams, refs, savename=None, final_nw=final_nw, final_step=final_step, pos_list=None, sigma_max=1.5, blur_extra=0.05)
+    else:
+        big_model = do_it_all_for_me(sams, refs, savename=savename, final_nw=final_nw, final_step=final_step, pos_list=None, sigma_max=1.5, blur_extra=0.05)
     return big_model
 
 if __name__ == "__main__":
     import h5py
     big_model = test_reconstruction(save_data=False)
-    print('ITs done')
+    print('Its done')
 

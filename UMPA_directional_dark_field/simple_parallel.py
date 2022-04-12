@@ -10,6 +10,9 @@ from . import do_it_all_for_me
 from . import generate_rgb
 
 def arr_stitch(arr_list):
+    '''
+    Simple function for stitching 2d arrays together
+    '''
     stitcher = arr_list[0][:, :-4]
 
     for i in range(1, len(arr_list)):
@@ -22,6 +25,9 @@ def arr_stitch(arr_list):
 
 
 def arr_stitch_3d(arr_list):
+    '''
+    Simple function for stitching 3d arrays together
+    '''
     stitcher = arr_list[0][:, :-4, :]
 
     for i in range(1, len(arr_list)):
@@ -34,7 +40,13 @@ def arr_stitch_3d(arr_list):
 
 
 def do_it_all_for_me_multiprocessing(sams, refs, save_path, final_nw=5, final_step=40,
-                                     pos_list=None, sigma_max=1.5, max_shift=5, ROI=None, blur_extra=0.45, n_process=16):
+                                     pos_list=None, sigma_max=15, max_shift=5, ROI=None, blur_extra=0.45, n_process=16):
+    '''
+    This is a VERY simple parallel implementation using python multiprocessing module
+    Note that it is memory and resource inefficient!!!!!
+    n_process -> int, number of separate processes to use
+    See 'do_it_all_for_me' for description of other arguments
+    '''
 
     try:
         from multiprocessing import Pool
@@ -138,6 +150,9 @@ def do_it_all_for_me_multiprocessing(sams, refs, save_path, final_nw=5, final_st
     return rgb
 
 def test_reconstruction_multiprocessing(save_path = ''):
+    '''
+    Test code for the multiprocessing
+    '''
 
     final_nw = 5
     final_step =5

@@ -2,7 +2,9 @@ import numpy as np
 
 
 def gauss_from_transform2(v, sig_max=10):
-    '''note sigma here referes to the traditional sigma'''
+    '''
+    Return the tradtional gaussian parameters from the transformed parameters
+    '''
     array_to_fill = np.zeros_like(v)
     thetas = np.arctan2(v[:, :, 1], v[:, :, 0])
     epsilon = (v[:, :, 0] ** 2) + (v[:, :, 1] ** 2)
@@ -19,7 +21,9 @@ def gauss_from_transform2(v, sig_max=10):
 
 
 def gauss_from_transform(v, sig_max=10):
-    '''note sigma here referes to the traditional sigma'''
+    '''
+    Return the tradtional gaussian parameters from the transformed parameters
+    '''
     array_to_fill = np.zeros_like(v)
     thetas = ((np.arctan2(v[:, :, 1], v[:, :, 0]) * 180 / np.pi) +270) % 180
     epsilon = (v[:, :, 0] ** 2) + (v[:, :, 1] ** 2)
@@ -48,7 +52,10 @@ def gauss_from_transform(v, sig_max=10):
     return array_to_fill
 
 def abc_from_transform_c_notc(sx, sy, sig, t = 0.45, max_sig=10):
-    ''' Note: set t to 0.45 for ddf paper data'''
+    '''
+    For moving between co-ordinate spaces
+    rewrite this in C and integrate with cythong for a speed increase
+    '''
     #theta, sig_x_sq, sig_y_sq = 0
     add_cost = 0
 
@@ -89,6 +96,9 @@ def abc_from_transform_c_notc(sx, sy, sig, t = 0.45, max_sig=10):
     return a,b,c,add_cost
 
 def abc_from_transform(v, t=0.45):
+    '''
+    Function for switching between co-ordinate transforms
+    '''
 
 
     if np.asarray(v).ndim == 3:
@@ -111,6 +121,17 @@ def abc_from_transform(v, t=0.45):
 
 
 def generate_rgb(gauss_properties, log_scale=False):
+    '''
+    Generate an RGB image from an array of 2d gaussian parameters
+
+    Returns:
+    RGB Image [3d]
+    Orientation [2d]
+    Directionality [2d]
+    Magnitude [2d]
+
+
+    '''
     direction = gauss_properties[:, :, 2]
     #
     # if log_scale:
@@ -139,26 +160,10 @@ def generate_rgb(gauss_properties, log_scale=False):
 
 
 def hsv2rgb(hsv):
-    """\
-    HSV (Hue,Saturation,Value) to RGB (Red,Green,Blue) transformation.
-    Parameters
-    ----------
-    hsv : array-like
-        Input must be two-dimensional. **First** axis is interpreted
-        as hue,saturation,value channels.
-    Returns
-    -------
-    rgb : ndarray
-        Three dimensional output. **Last** axis is interpreted as
-        red, green, blue channels.
-    See also
-    --------
-    complex2rgb
-    complex2hsv
-    rgb2hsv
+    '''
+    Convert a hsv image to an rgb image
+    '''
 
-    BORROWED FROM PTYPY PACKAGE AND MODIFIED
-    """
     # HSV channels
     h, s, v = hsv
 
