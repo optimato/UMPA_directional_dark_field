@@ -40,7 +40,7 @@ def arr_stitch_3d(arr_list):
 
 
 def do_it_all_for_me_multiprocessing(sams, refs, save_path, final_nw=5, final_step=40,
-                                     pos_list=None, sigma_max=15, max_shift=5, ROI=None, blur_extra=0.45, n_process=16):
+                                     pos_list=None, sigma_max=15, max_shift=5, ROI=None, blur_extra=0.45, n_process=16, savepng=False):
     '''
     This is a VERY simple parallel implementation using python multiprocessing module
     Note that it is memory and resource inefficient!!!!!
@@ -96,7 +96,7 @@ def do_it_all_for_me_multiprocessing(sams, refs, save_path, final_nw=5, final_st
         savepaths.append(tmp_savepath)
 
     args = zip(repeat(sams), repeat(refs), savepaths, repeat(final_nw), repeat(final_step), repeat(pos_list),
-               repeat(sigma_max), repeat(max_shift), ROIs, repeat(blur_extra))
+               repeat(sigma_max), repeat(max_shift), ROIs, repeat(blur_extra), repeat(savepng))
     # print(args[0])
     try:
         with Pool(n_process) as pool:

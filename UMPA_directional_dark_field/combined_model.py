@@ -125,7 +125,7 @@ class multi_resolution_solver:
             print('Stage out of range')
 
 
-def do_it_all_for_me(sams, refs, save_path=None, final_nw=5, final_step=5, pos_list=None, sigma_max=15, max_shift=5, ROI = None, blur_extra=0.45):
+def do_it_all_for_me(sams, refs, save_path=None, final_nw=5, final_step=5, pos_list=None, sigma_max=15, max_shift=5, ROI = None, blur_extra=0.45, savepng=True):
     '''
     A function for running everything
     sams -> list of sample frames
@@ -158,11 +158,12 @@ def do_it_all_for_me(sams, refs, save_path=None, final_nw=5, final_step=5, pos_l
 
         if save_path is not None:
 
-            fig = plt.figure(figsize=(7, 4))
-            plt.imshow(rgb)
-            plt.title('Reconstrution stage ' + str(i + 1))
-            plt.savefig(savename + 'recon_stage_' + str(i) + '.png')
-            plt.close(fig)
+            if savepng:
+                fig = plt.figure(figsize=(7, 4))
+                plt.imshow(rgb)
+                plt.title('Reconstrution stage ' + str(i + 1))
+                plt.savefig(savename + 'recon_stage_' + str(i) + '.png')
+                plt.close(fig)
 
             F = h5py.File(savename + '.h5', 'a')
             F.create_dataset('gauss_properties_stage_' + str(i), data=big_model.single_res_models[i].gauss_properties)
