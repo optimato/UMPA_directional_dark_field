@@ -5,6 +5,7 @@ import os
 from glob import glob
 from itertools import repeat
 import UMPA
+import traceback
 
 from . import do_it_all_for_me
 from . import generate_rgb
@@ -103,6 +104,7 @@ def do_it_all_for_me_multiprocessing(sams, refs, save_path, final_nw=5, final_st
             #pool.starmap(fake_do_it_all_for_me, args)
             output = pool.starmap(do_it_all_for_me, args)
     except:
+        traceback.print_last()
         print('Multiprocessing gave some errors but I dont know how to avoid this. Maybe everything will be ok.')
 
     outs = sorted(glob(save_path + '_temp/' + '*.h5'))

@@ -200,9 +200,9 @@ def test_reconstruction(save_data=False):
     refs = sim['ref']
 
     if save_data == False:
-        big_model = do_it_all_for_me(sams, refs, savename=None, final_nw=final_nw, final_step=final_step, pos_list=None, sigma_max=1.5, blur_extra=0.05)
+        big_model = do_it_all_for_me(sams, refs, savepath=None, final_nw=final_nw, final_step=final_step, pos_list=None, sigma_max=1.5, blur_extra=0.05)
     else:
-        big_model = do_it_all_for_me(sams, refs, savename=savename, final_nw=final_nw, final_step=final_step, pos_list=None, sigma_max=1.5, blur_extra=0.05)
+        big_model = do_it_all_for_me(sams, refs, savepath=savename, final_nw=final_nw, final_step=final_step, pos_list=None, sigma_max=1.5, blur_extra=0.05)
     return big_model
 
 if __name__ == "__main__":
