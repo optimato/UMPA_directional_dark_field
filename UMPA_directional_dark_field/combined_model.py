@@ -177,7 +177,7 @@ def do_it_all_for_me(sams, refs, save_path=None, final_nw=5, final_step=5, pos_l
         big_model.send_output_to_next_model()
 
     print('done')
-    return big_model
+    #return big_model
 
 
 def test_reconstruction(save_data=False):
