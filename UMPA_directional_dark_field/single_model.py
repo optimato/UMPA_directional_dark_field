@@ -148,7 +148,7 @@ class solver_at_resolution:
                     self.optimise_pixel(i, j, method=method, maxiter=maxiter, tol=tol, mode = mode)
 
 
-            print('done ' + str((i * self.sh[1]) + j) + ' pixels of ' + str((self.sh[0]) * self.sh[1]))
+            #print('done ' + str((i * self.sh[1]) + j) + ' pixels of ' + str((self.sh[0]) * self.sh[1]))
 
         print(str((self.sh[0] - 1) * self.sh[1]) + ' pixels took ' + str(datetime.now() - start))
         print('Average pixel optimisation time was: ' + str((datetime.now() - start)/((self.sh[0] - 1) * self.sh[1])))

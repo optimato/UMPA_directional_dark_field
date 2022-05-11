@@ -10,15 +10,19 @@ import traceback
 from . import do_it_all_for_me
 from . import generate_rgb
 
+'''
+This was badly put together to save RAM and work - not for sharing because its a bit spaghetti
+'''
+
 def arr_stitch(arr_list):
     '''
     Simple function for stitching 2d arrays together
     '''
-    stitcher = arr_list[0][:, :-4]
+    stitcher = arr_list[0][:, :-3]
 
     for i in range(1, len(arr_list)):
         if i != len(arr_list) - 1:
-            stitcher = np.append(stitcher, arr_list[i][:, 3:-4], axis=1)
+            stitcher = np.append(stitcher, arr_list[i][:, 3:-3], axis=1)
         else:
             stitcher = np.append(stitcher, arr_list[i][:, 3:], axis=1)
 
@@ -29,18 +33,18 @@ def arr_stitch_3d(arr_list):
     '''
     Simple function for stitching 3d arrays together
     '''
-    stitcher = arr_list[0][:, :-4, :]
+    stitcher = arr_list[0][:, :-3, :]
 
     for i in range(1, len(arr_list)):
         if i != len(arr_list) - 1:
-            stitcher = np.append(stitcher, arr_list[i][:, 3:-4, :], axis=1)
+            stitcher = np.append(stitcher, arr_list[i][:, 3:-3, :], axis=1)
         else:
             stitcher = np.append(stitcher, arr_list[i][:, 3:, :], axis=1)
 
     return stitcher
 
 
-def do_it_all_for_me_multiprocessing(sams, refs, save_path, final_nw=5, final_step=40,
+def do_it_all_for_me_multiprocessing_memsave(sams, refs, save_path, final_nw=5, final_step=40,
                                      pos_list=None, sigma_max=15, max_shift=5, ROI=None, blur_extra=0.45, n_process=16, savepng=True):
     print('Im the new version')
     '''
@@ -57,16 +61,13 @@ def do_it_all_for_me_multiprocessing(sams, refs, save_path, final_nw=5, final_st
         print('Multiproccesing not installed, bad things might happen now')
 
     ## Splitting ROIs
-    if ROI is None:
-        if pos_list is None:
-            ROI_end_0 = sams[0].shape[0] - (2*final_nw) - (2*max_shift) - 1
-            ROI_end_1 = sams[0].shape[1] - (2 * final_nw) - (2 * max_shift) - 1
-            ROI = [[0, ROI_end_0, 1], [0, ROI_end_1, 1]]
+    if ROI is not None:
+        print('This only works if no ROI is set - please crop the inputs')
+    if pos_list is not None:
+        print('This is going to catastrophically fail - its only compatable with diffuser stepping for now')
+    umpa_chop = (final_nw) + (max_shift) + 8
 
-
-    main_ROI_start = ROI[1][0]
-    main_ROI_end = ROI[1][1]
-    main_ROI_width = main_ROI_end - main_ROI_start
+    main_ROI_width = sams[0].shape[1]
     print(main_ROI_width)
 
     ROI_edges = []
@@ -80,13 +81,33 @@ def do_it_all_for_me_multiprocessing(sams, refs, save_path, final_nw=5, final_st
         if i == 0:
             start = ROI_edges[i]
         else:
-            start = ROI_edges[i] - (3* final_step)
+            start = ROI_edges[i] - umpa_chop - (3*final_step)
         if i == n_process - 1:
             end = ROI_edges[i + 1]
         else:
-            end = ROI_edges[i + 1] + (3* final_step)
-        roi = [ROI[0],[main_ROI_start + start, main_ROI_start + end, ROI[1][2]]]
+            end = ROI_edges[i + 1] + umpa_chop + (3*final_step)
+        roi = [[0, sams[0].shape[0], 1], [start, end, 1]]
         ROIs.append(roi)
+
+    print(ROIs)
+
+    ## lets try some memory saving tricks!!!!
+    n_rois = len(ROIs)
+    sams_crop = []
+    refs_crop = []
+    new_ROIs = []
+    for i in range(n_rois):
+        sam_crop = [sam[ROIs[i][0][0]:ROIs[i][0][1], ROIs[i][1][0]:ROIs[i][1][1]] for sam in sams]
+        ref_crop = [ref[ROIs[i][0][0]:ROIs[i][0][1], ROIs[i][1][0]:ROIs[i][1][1]] for ref in refs]
+        roi = None#[[0,0,ROIs[i][0][2]],[0,0,ROIs[i][1][2]]]
+        print(sam_crop[0].shape)
+        sams_crop.append(sam_crop)
+        refs_crop.append(ref_crop)
+        new_ROIs.append(roi)
+
+    #return sams, sams_crop, ROIs
+    del sams, refs
+
 
 
     ## making temp savepaths
@@ -98,9 +119,10 @@ def do_it_all_for_me_multiprocessing(sams, refs, save_path, final_nw=5, final_st
         tmp_savepath = save_path + '_temp/temp_ROI_no_' + str(i).zfill(3)
         savepaths.append(tmp_savepath)
 
-    args = zip(repeat(sams), repeat(refs), savepaths, repeat(final_nw), repeat(final_step), repeat(pos_list),
-               repeat(sigma_max), repeat(max_shift), ROIs, repeat(blur_extra), repeat(savepng))
-
+    #args = zip(repeat(sams), repeat(refs), savepaths, repeat(final_nw), repeat(final_step), repeat(pos_list),
+    #           repeat(sigma_max), repeat(max_shift), ROIs, repeat(blur_extra), repeat(savepng))
+    args = zip(sams_crop, refs_crop, savepaths, repeat(final_nw), repeat(final_step), repeat(pos_list),
+               repeat(sigma_max), repeat(max_shift), new_ROIs, repeat(blur_extra), repeat(savepng))
     # print(args[0])
     try:
         with Pool(n_process) as pool:
@@ -154,17 +176,17 @@ def do_it_all_for_me_multiprocessing(sams, refs, save_path, final_nw=5, final_st
     plt.close(fig)
     return rgb
 
-def test_reconstruction_multiprocessing(save_path = '/home/rs3g18/Documents/2Dstar/DDF-output/test_data/'):
+def test_reconstruction_multiprocessing_memsave(save_path = '/home/rs3g18/Documents/2Dstar/DDF-output/test_data/'):
     '''
     Test code for the multiprocessing
     '''
 
-    final_nw = 5
-    final_step =5
+    final_nw = 2
+    final_step = 1
     num_frames = 25
     max_iter_final = 200
 
-    save_path = save_path + 'test_reconstruction'
+    save_path = save_path + 'test_reconstruction7'
     savename = save_path + '_N_' + str(num_frames) + '_step_' + str(final_step) + '_Nw_' + str(
         final_nw) + '_final_max_iter_' + str(max_iter_final)
 
@@ -173,8 +195,12 @@ def test_reconstruction_multiprocessing(save_path = '/home/rs3g18/Documents/2Dst
     sams = sim['meas']
     refs = sim['ref']
 
-    rgb = do_it_all_for_me_multiprocessing(sams, refs, savename, final_nw=final_nw, final_step=final_step, pos_list=None, sigma_max=1.5, blur_extra=0.05, n_process=8)
+    sams = [sam[:500, :500].copy() for sam in sams]
+    refs = [ref[:500, :500].copy() for ref in refs]
+
+    rgb = do_it_all_for_me_multiprocessing_memsave(sams, refs, savename, final_nw=final_nw, final_step=final_step, pos_list=None, sigma_max=1.5, blur_extra=0.05, n_process=16)
+    print(rgb.shape)
     return rgb
 
 if __name__ == '__main__':
-    test_reconstruction_multiprocessing()
+    test_reconstruction_multiprocessing_memsave()
