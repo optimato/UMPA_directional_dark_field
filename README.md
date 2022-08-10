@@ -8,6 +8,6 @@ The simplest method of installation is navigating to the folder containing the s
 
 There is an example script showing how to run a simple reconstruction
 
-#This needs Python3.10 or above to use multiprocessing
-#Sometimes reconstructions do not run when launched from a Jupyter notebook, if you encounter problems please try 'normal' python
-#The multiprocessing elements may not work with Windows
+# This needs Python3.10 or above to use multiprocessing
+# Sometimes reconstructions do not run when launched from a Jupyter notebook, if you encounter problems please try 'normal' python
+# The multiprocessing elements may not work with Windows
