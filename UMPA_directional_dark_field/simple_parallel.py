@@ -101,7 +101,8 @@ def do_it_all_for_me_multiprocessing(sams, refs, save_path, final_nw=5, final_st
     args = zip(repeat(sams), repeat(refs), savepaths, repeat(final_nw), repeat(final_step), repeat(pos_list),
                repeat(sigma_max), repeat(max_shift), ROIs, repeat(blur_extra), repeat(savepng))
 
-    # print(args[0])
+    #print(list(args))
+
     try:
         with Pool(n_process) as pool:
             #pool.starmap(fake_do_it_all_for_me, args)
