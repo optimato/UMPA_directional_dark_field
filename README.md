@@ -17,8 +17,6 @@ There is an example script showing how to run a simple reconstruction
 
 This has been tested on various Linux distrubutions but should work on Windows. The main UMPA Code will not currently work on Apple but once this is fixed, this code should be compatible.
 
-This needs Python 3.10 or above to use multiprocessing
+This needs Python 3.10 or above to use multiprocessing, but will run on older versions if this is not used. 
 
-Sometimes reconstructions hang when launched from a Jupyter notebook, if you encounter problems please try standard python
-
-
+Sometimes reconstructions hang when launched from a Jupyter notebook, if you encounter problems please try standard python.
