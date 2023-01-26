@@ -30,7 +30,7 @@ class solver_at_resolution:
         self.ROI = ROI
 
         self.PM = UMPA.model.UMPAModelDFKernel(sam_list=sams, ref_list=refs, pos_list=pos_list, mask_list=None, window_size=Nw, max_shift=max_shift, ROI=ROI)
-        self.PM.shift_mode = True
+        #self.PM.shift_mode = True
         self.PM.set_step(step)
         self.sh = self.PM.sh
         self.padding = self.PM.padding
