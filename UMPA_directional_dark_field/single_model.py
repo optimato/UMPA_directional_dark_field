@@ -118,11 +118,11 @@ class solver_at_resolution:
                 if mag == 0:
                     mag = 0.5
 
-                sig = minimize_scalar(self.cost_for_blur_new, bounds=(0.1, 4), args=(sx, sy, 'sig', pix_y, pix_x), method=method, tol=tol, options={'maxiter': maxiter})['x']
+                sig = minimize_scalar(self.cost_for_blur_new, bracket=(0.1, 4), args=(sx, sy, 'sig', pix_y, pix_x), method=method, tol=tol, options={'maxiter': maxiter})['x']
 
-                theta = minimize_scalar(self.cost_for_blur_new, bounds=(- np.pi/2, np.pi/2), args=(mag, sig, 'theta', pix_y, pix_x), tol = 1e-12, method=method, options={'maxiter': maxiter})['x']
+                theta = minimize_scalar(self.cost_for_blur_new, bracket=(- np.pi/2, np.pi/2), args=(mag, sig, 'theta', pix_y, pix_x), tol = 1e-12, method=method, options={'maxiter': maxiter})['x']
 
-                mag = minimize_scalar(self.cost_for_blur_new, bounds=(0, 1), args=(theta, sig, 'mag', pix_y, pix_x), tol = 1e-12, method=method, options={'maxiter': maxiter})['x']
+                mag = minimize_scalar(self.cost_for_blur_new, bracket=(0, 1), args=(theta, sig, 'mag', pix_y, pix_x), tol = 1e-12, method=method, options={'maxiter': maxiter})['x']
 
                 sx = mag * np.cos(theta)
                 sy = mag * np.sin(theta)
