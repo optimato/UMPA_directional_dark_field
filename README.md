@@ -1,15 +1,17 @@
 # UMPA_directional_dark_field
 
 Directional Dark Field addition to UMPA
-As Desribed in 'X-ray directional dark-field imaging using Unified Modulated Pattern Analysis' Paper by Ronan Smith et.al (2022) - please cite this paper if you use our code
+As Desribed in ['X-ray directional dark-field imaging using Unified Modulated Pattern Analysis' Paper by Ronan Smith et.al (2022)](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0273315) - please cite this paper if you use our code.
 
-[This code relies on the C++ version of UMPA, which can be found here](https://github.com/optimato/UMPA)
+# Installation Instructions 
+
+[This code relies on the C++ version of UMPA, which can be found here](https://github.com/optimato/UMPA) 
 
 The simplest method of installation is navigating to the folder containing the setup.py file and install with 
 
-'''
-pip install . --user'
-'''
+```
+pip install . --user
+```
 
 There is an example script showing how to run a simple reconstruction
 
